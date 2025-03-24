@@ -25,7 +25,10 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'API for managing a digital library with CRUD operations',
     },
-    servers: [{ url: `http://localhost:${process.env.PORT || 8080}` }],
+    // Use BASE_URL if provided, otherwise fallback to localhost
+    servers: [
+      { url: process.env.BASE_URL || `http://localhost:${process.env.PORT || 8080}` }
+    ],
     components: {
       schemas: {
         Book: {
