@@ -1,46 +1,55 @@
+// controllers/booksController.js
 const Book = require('../models/Book');
 
-// Create a book
-exports.createBook = async (req, res) => {
+exports.createBook = async (req, res, next) => {
   try {
     const book = new Book(req.body);
     await book.save();
     res.status(201).json(book);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    next(error); // Pass error to the global error handler
   }
 };
 
-// Get all books
-exports.getBooks = async (req, res) => {
+exports.getBooks = async (req, res, next) => {
   try {
     const books = await Book.find();
     res.status(200).json(books);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };
 
-// Update a book
-exports.updateBook = async (req, res) => {
+exports.updateBook = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const updatedBook = await Book.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
-    if (!updatedBook) return res.status(404).json({ error: 'Book not found' });
+    const updatedBook = await Book.findByIdAndUpdate(
+      id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!updatedBook) {
+      const err = new Error('Book not found');
+      err.statusCode = 404;
+      throw err;
+    }
     res.status(200).json(updatedBook);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    next(error);
   }
 };
 
-// Delete a book
-exports.deleteBook = async (req, res) => {
+exports.deleteBook = async (req, res, next) => {
   try {
     const { id } = req.params;
     const deletedBook = await Book.findByIdAndDelete(id);
-    if (!deletedBook) return res.status(404).json({ error: 'Book not found' });
+    if (!deletedBook) {
+      const err = new Error('Book not found');
+      err.statusCode = 404;
+      throw err;
+    }
     res.status(200).json({ message: 'Book successfully deleted' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    next(error);
   }
 };

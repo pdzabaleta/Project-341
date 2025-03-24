@@ -10,4 +10,4 @@ const BookSchema = new mongoose.Schema({
   availableCopies: { type: Number, required: true, min: 0 },
 });
 
-module.exports = mongoose.model('Book', BookSchema);
+module.exports = mongoose.model('Book', BookSchema, 'library');
