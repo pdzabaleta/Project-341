@@ -1,11 +1,12 @@
-// models/User.js
 const mongoose = require('mongoose');
 
-const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true }, 
-  createdAt: { type: Date, default: Date.now }
+const userSchema = new mongoose.Schema({
+  githubId: { type: String, required: true, unique: true },
+  username: { type: String, required: true },
+  email: { type: String, required: false, default: '' },
+  profileUrl: { type: String },
+  avatarUrl: { type: String },
 });
 
-module.exports = mongoose.model('User', UserSchema, 'users');
+// Aquí definimos un modelo de usuario que va a interactuar con la base de datos de MongoDB
+module.exports = mongoose.model('User', userSchema, 'users');

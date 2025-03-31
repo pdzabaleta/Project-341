@@ -1,6 +1,8 @@
+// routes/booksRoutes.js
 const express = require('express');
 const router = express.Router();
 const booksController = require('../controllers/booksController');
+const isAuthenticated = require('../middlewares/authMiddleware'); 
 
 /**
  * @swagger
@@ -8,6 +10,8 @@ const booksController = require('../controllers/booksController');
  *   post:
  *     summary: Create a new book
  *     tags: [Books]
+ *     security:
+ *       - sessionAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -43,7 +47,7 @@ const booksController = require('../controllers/booksController');
  *       400:
  *         description: Bad Request
  */
-router.post('/books', booksController.createBook);
+router.post('/books', isAuthenticated, booksController.createBook);
 
 /**
  * @swagger
@@ -71,6 +75,8 @@ router.get('/books', booksController.getBooks);
  *   put:
  *     summary: Update a book by ID
  *     tags: [Books]
+ *     security:
+ *       - sessionAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -92,7 +98,7 @@ router.get('/books', booksController.getBooks);
  *       404:
  *         description: Book not found
  */
-router.put('/books/:id', booksController.updateBook);
+router.put('/books/:id', isAuthenticated, booksController.updateBook);
 
 /**
  * @swagger
@@ -100,6 +106,8 @@ router.put('/books/:id', booksController.updateBook);
  *   delete:
  *     summary: Delete a book by ID
  *     tags: [Books]
+ *     security:
+ *       - sessionAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -113,6 +121,6 @@ router.put('/books/:id', booksController.updateBook);
  *       404:
  *         description: Book not found
  */
-router.delete('/books/:id', booksController.deleteBook);
+router.delete('/books/:id', isAuthenticated, booksController.deleteBook);
 
 module.exports = router;

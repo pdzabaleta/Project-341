@@ -1,11 +1,14 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const passport = require('passport');
+const session = require('express-session');
 const connectDB = require('./config/db');
 const booksRoutes = require('./routes/booksRoutes');
 const usersRoutes = require('./routes/usersRoutes');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const errorHandler = require('./middlewares/errorHandler');
+const passportConfig = require('./config/passport'); // Importa la configuración de passport
 
 dotenv.config();
 
@@ -14,7 +17,18 @@ const app = express();
 // Middleware for parsing JSON
 app.use(express.json());
 
-// Connect to MongoDB
+// Configuración de sesiones
+app.use(session({
+  secret: 'mysecret', // Cambia esto por algo más seguro en producción
+  resave: false,
+  saveUninitialized: false,
+}));
+
+// Inicializa Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Conecta a MongoDB
 connectDB();
 
 // Swagger configuration
@@ -26,7 +40,6 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'API for managing a digital library with CRUD operations',
     },
-    // Usa BASE_URL si está definida, de lo contrario usa localhost
     servers: [
       { url: process.env.BASE_URL || `http://localhost:${process.env.PORT || 8080}` }
     ],
@@ -45,7 +58,6 @@ const swaggerOptions = {
             availableCopies: { type: 'number', description: 'Number of available copies' },
           },
         },
-        // Puedes agregar también el esquema de User si lo deseas.
       },
     },
   },
@@ -53,7 +65,7 @@ const swaggerOptions = {
 };
 
 const swaggerSpecs = swaggerJsdoc(swaggerOptions);
-console.log('Setting up Swagger docs...');
+// console.log('Setting up Swagger docs...');
 
 // Sirve la interfaz de Swagger UI en /api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
@@ -64,7 +76,18 @@ app.get('/swagger.json', (req, res) => {
   res.send(swaggerSpecs);
 });
 
-// Use API routes for both collections
+// Rutas de autenticación con GitHub
+app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
+
+app.get('/auth/github/callback',
+  passport.authenticate('github', { failureRedirect: '/' }),
+  (req, res) => {
+    res.redirect('/api-docs?login=success');
+  }
+);
+
+
+// Rutas de API
 app.use('/api', booksRoutes);
 app.use('/api', usersRoutes);
 
