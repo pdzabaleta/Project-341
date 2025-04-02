@@ -8,7 +8,7 @@ const usersRoutes = require('./routes/usersRoutes');
 const swaggerJsdoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const errorHandler = require('./middlewares/errorHandler');
-const passportConfig = require('./config/passport'); // Importa la configuración de passport
+const passportConfig = require('./config/passport'); // Import Passport configuration
 
 dotenv.config();
 
@@ -17,18 +17,18 @@ const app = express();
 // Middleware for parsing JSON
 app.use(express.json());
 
-// Configuración de sesiones
+// Session configuration
 app.use(session({
-  secret: 'mysecret', // Cambia esto por algo más seguro en producción
+  secret: 'mysecret', // Change this to a secure key in production
   resave: false,
   saveUninitialized: false,
 }));
 
-// Inicializa Passport
+// Initialize Passport and session handling
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Conecta a MongoDB
+// Connect to MongoDB
 connectDB();
 
 // Swagger configuration
@@ -59,35 +59,46 @@ const swaggerOptions = {
           },
         },
       },
+      securitySchemes: {
+        sessionAuth: {
+          type: 'apiKey',
+          in: 'cookie',
+          name: 'connect.sid'
+        }
+      }
     },
   },
-  apis: ['./routes/*.js'], // Asegúrate de que tus archivos de rutas tengan las anotaciones Swagger
+  apis: ['./routes/*.js'], // Make sure your route files include Swagger annotations
 };
 
 const swaggerSpecs = swaggerJsdoc(swaggerOptions);
-// console.log('Setting up Swagger docs...');
 
-// Sirve la interfaz de Swagger UI en /api-docs
+// Route for the root URL (optional)
+app.get('/', (req, res) => {
+  res.send('Welcome to the Digital Library API! Visit <a href="/api-docs">/api-docs</a> to see the API documentation.');
+});
+
+// Serve Swagger UI at /api-docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
-// Sirve el JSON de Swagger en /swagger.json
+// Serve the Swagger JSON at /swagger.json
 app.get('/swagger.json', (req, res) => {
   res.setHeader('Content-Type', 'application/json');
   res.send(swaggerSpecs);
 });
 
-// Rutas de autenticación con GitHub
+// GitHub Authentication Routes
 app.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
 
 app.get('/auth/github/callback',
   passport.authenticate('github', { failureRedirect: '/' }),
   (req, res) => {
+    console.log("Authentication successful, redirecting to /api-docs");
     res.redirect('/api-docs?login=success');
   }
 );
 
-
-// Rutas de API
+// API Routes for Books and Users
 app.use('/api', booksRoutes);
 app.use('/api', usersRoutes);
 

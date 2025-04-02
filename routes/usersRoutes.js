@@ -1,5 +1,4 @@
 const express = require('express');
-const passport = require('passport');
 const router = express.Router();
 const usersController = require('../controllers/usersController');
 
@@ -7,7 +6,7 @@ const usersController = require('../controllers/usersController');
  * @swagger
  * /api/users:
  *   post:
- *     summary: Create a new user
+ *     summary: Create a new user manually
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -80,6 +79,17 @@ router.get('/users', usersController.getUsers);
  *         application/json:
  *           schema:
  *             type: object
+ *             properties:
+ *               username:
+ *                 type: string
+ *               displayName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               profileUrl:
+ *                 type: string
+ *               avatarUrl:
+ *                 type: string
  *     responses:
  *       200:
  *         description: User updated successfully
@@ -110,38 +120,5 @@ router.put('/users/:id', usersController.updateUser);
  *         description: User not found
  */
 router.delete('/users/:id', usersController.deleteUser);
-
-/* =============================================
- * GitHub Authentication Routes
- ==============================================*/
-
-// Redirect to GitHub login
-router.get('/auth/github', passport.authenticate('github', { scope: ['user:email'] }));
-
-// GitHub callback route
-router.get('/auth/github/callback',
-  passport.authenticate('github', { failureRedirect: '/' }),
-  (req, res) => {
-    console.log("Autenticación exitosa, redirigiendo a /api-docs");
-    res.redirect('/api-docs');
-  }
-);
-
-
-// Log out the user
-router.get('/logout', (req, res) => {
-  req.logout((err) => {
-    if (err) return next(err);
-    res.redirect('/');
-  });
-});
-
-// Profile route (only accessible if authenticated)
-router.get('/profile', (req, res) => {
-  if (!req.user) {
-    return res.redirect('/auth/github');
-  }
-  res.json(req.user); // You can render a profile view here if needed
-});
 
 module.exports = router;

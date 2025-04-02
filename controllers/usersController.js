@@ -1,9 +1,20 @@
-// controllers/usersController.js
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 
 exports.createUser = async (req, res, next) => {
   try {
-    const user = new User(req.body);
+    const { name, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({
+      // Para registro manual, mapeamos "name" a username y displayName
+      username: name,
+      displayName: name,
+      email,
+      password: hashedPassword,
+      githubId: null,      // No se asigna en registro manual
+      profileUrl: '',      // Valor por defecto
+      avatarUrl: ''        // Valor por defecto
+    });
     await user.save();
     res.status(201).json(user);
   } catch (error) {
